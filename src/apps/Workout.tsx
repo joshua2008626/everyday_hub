@@ -1,0 +1,2 @@
+import LogApp from'./LogApp'
+export default function Workout(){return<LogApp id='workout' fields={[{k:'ex',label:'Exercise'},{k:'sets',label:'Sets',type:'number'},{k:'reps',label:'Reps',type:'number'},{k:'kg',label:'Weight (kg)',type:'number'}]} show={e=>e.ex+': '+(e.sets||'-')+' x '+(e.reps||'-')+(e.kg?' @ '+e.kg+' kg':'')} summary={es=>es.filter(e=>Date.now()-new Date(e.date).getTime()<7*864e5).length+' sets logged in the last 7 days'}/>}

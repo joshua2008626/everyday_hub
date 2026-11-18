@@ -1,0 +1,14 @@
+import{useState}from'react'
+import{useMedia}from'../hooks/useMedia'
+const sz=(n:number)=>n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB'
+export default function Files(){
+const{items,add,remove,update}=useMedia('file');const[q,setQ]=useState('');const[sort,setSort]=useState('at');const[pv,setPv]=useState<{n:string;t:string;u:string}|null>(null)
+const l=items.filter(i=>i.name.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>sort==='name'?a.name.localeCompare(b.name):sort==='size'?b.blob.size-a.blob.size:b.at-a.at)
+const dl=(b:Blob,n:string)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()}
+const preview=async(i:typeof items[0])=>{if(i.blob.type.startsWith('image/'))setPv({n:i.name,t:'img',u:URL.createObjectURL(i.blob)});else if(i.blob.size<200000&&(i.blob.type.startsWith('text/')||/\.(txt|md|json|csv)$/i.test(i.name)))setPv({n:i.name,t:'txt',u:await i.blob.text()});else setPv({n:i.name,t:'none',u:''})}
+return<div className="mx-auto max-w-lg space-y-3"><div className="flex gap-2"><label className="btn cursor-pointer">Import files<input hidden type="file" multiple onChange={e=>{add(e.target.files);e.target.value=''}}/></label><input className="inp" placeholder="Search" value={q} onChange={e=>setQ(e.target.value)}/><select className="inp w-28" value={sort} onChange={e=>setSort(e.target.value)}><option value="at">Newest</option><option value="name">Name</option><option value="size">Size</option></select></div>
+<p className="text-sm opacity-70">{items.length} files · {sz(items.reduce((s,i)=>s+i.blob.size,0))} used in this app</p>
+{!items.length&&<p className="py-8 text-center opacity-60">Import files from your device to manage them here. A web app cannot browse your whole phone, only files you choose.</p>}
+{l.map(i=><div key={i.id} className="card flex items-center justify-between gap-2 text-sm"><span className="truncate">{i.name} <span className="opacity-50">({sz(i.blob.size)})</span></span><span className="flex gap-3"><button onClick={()=>preview(i)}>View</button><button onClick={()=>{const n=prompt('Rename file',i.name);if(n?.trim())update(i.id!,{name:n.trim()})}}>Rename</button><button onClick={()=>dl(i.blob,i.name)}>Save</button><button onClick={()=>remove(i.id!)}>✕</button></span></div>)}
+{pv&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={()=>setPv(null)}><div className="card max-h-[80vh] max-w-xl overflow-auto" onClick={e=>e.stopPropagation()}><b>{pv.n}</b>{pv.t==='img'?<img src={pv.u} alt={pv.n} className="mt-2 max-w-full"/>:pv.t==='txt'?<pre className="mt-2 whitespace-pre-wrap text-xs">{pv.u}</pre>:<p className="mt-2 text-sm">No preview for this file type. Use Save to open it.</p>}</div></div>}
+<p className="text-xs opacity-60">Imported files are copied into this browser's storage. Not included in JSON backups.</p></div>}

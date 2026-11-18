@@ -1,0 +1,11 @@
+import{useEffect,useState}from'react'
+import{useMedia}from'../hooks/useMedia'
+function Img({b,className,alt}:{b:Blob;className?:string;alt:string}){const[u,setU]=useState('');useEffect(()=>{const x=URL.createObjectURL(b);setU(x);return()=>URL.revokeObjectURL(x)},[b]);return<img src={u} alt={alt} className={className}/>}
+export default function Gallery(){
+const{items,add,remove}=useMedia('photo');const[alb,setAlb]=useState('');const[na,setNa]=useState('');const[v,setV]=useState(-1)
+const list=items.filter(i=>!alb||i.album===alb);const albums=[...new Set(items.map(i=>i.album).filter(Boolean))];const p=list[v]
+return<div className="space-y-3"><div className="flex flex-wrap gap-2"><input className="inp flex-1" placeholder="Album for new photos (optional)" value={na} onChange={e=>setNa(e.target.value)}/><label className="btn cursor-pointer">Add photos<input hidden type="file" accept="image/*" multiple onChange={e=>{add(e.target.files,na.trim());e.target.value=''}}/></label></div>
+{albums.length>0&&<div className="flex flex-wrap gap-2"><button className={`card px-3 py-1 ${!alb?'ring-2 ring-accent':''}`} onClick={()=>setAlb('')}>All</button>{albums.map(a=><button key={a} className={`card px-3 py-1 ${alb===a?'ring-2 ring-accent':''}`} onClick={()=>setAlb(a)}>{a}</button>)}</div>}
+{!list.length&&<p className="py-10 text-center opacity-60">No photos yet. Add some from your device.</p>}
+<div className="grid grid-cols-3 gap-2 md:grid-cols-5">{list.map((i,k)=><button key={i.id} onClick={()=>setV(k)}><Img b={i.blob} alt={i.name} className="aspect-square w-full rounded-xl object-cover"/></button>)}</div>
+{p&&<div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black/90 p-4" onClick={()=>setV(-1)}><Img b={p.blob} alt={p.name} className="max-h-[75vh] max-w-full object-contain"/><div className="flex gap-2" onClick={e=>e.stopPropagation()}><button className="btn" onClick={()=>setV((v-1+list.length)%list.length)}>‹</button><button className="btn" onClick={()=>setV((v+1)%list.length)}>›</button><button className="btn" onClick={()=>{remove(p.id!);setV(-1)}}>Delete</button><button className="btn" onClick={()=>setV(-1)}>Close</button></div></div>}</div>}
